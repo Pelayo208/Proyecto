@@ -1,12 +1,24 @@
 <?php
 // db.php
-$host = "db";       // <--- IMPORTANTE: Antes era "localhost", ahora es el nombre del servicio en Docker
-$usuario = "root";
-$password = "root"; // La contraseña que pusimos en el docker-compose
-$base_datos = "mi_proyecto";
 
+// 1. Intentamos leer las "Variables de Entorno" de Render (La nube)
+$host = getenv('DB_HOST');
+$usuario = getenv('DB_USER');
+$password = getenv('DB_PASS');
+$base_datos = getenv('DB_NAME');
+
+// 2. Si las variables están vacías (significa que estás en tu PC local), usamos los valores de siempre
+if (!$host) {
+    $host = "db";           // O "localhost" si no usas docker-compose
+    $usuario = "root";
+    $password = "root";
+    $base_datos = "mi_proyecto";
+}
+
+// 3. Crear la conexión
 $conn = new mysqli($host, $usuario, $password, $base_datos);
 
+// 4. Verificar errores
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
