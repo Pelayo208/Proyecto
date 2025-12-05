@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Servicio 1: Tu página web (PHP + Apache)
+  web:
+    build: .             # Usa el Dockerfile que acabamos de crear
+    ports:
+      - "8080:80"        # Tu web estará en localhost:8080
+    volumes:
+      - ./html:/var/www/html/
+    depends_on:
+      - db               # Espera a que la base de datos arranque
+
+  # Servicio 2: La Base de Datos (MariaDB)
+  db:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root      # Contraseña root
+      MYSQL_DATABASE: mi_proyecto    # Crea la DB automáticamente
+    ports:
+      - "3306:3306"      # Permite entrar desde HeidiSQL en localhost
+    volumes:
+      - db_data:/var/lib/mysql  # Guarda los datos aunque apagues docker
+
+volumes:
+  db_data:

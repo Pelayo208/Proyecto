@@ -1,0 +1,477 @@
+/* =========================================
+   1. CONFIGURACIÓN GENERAL (RESET)
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f6f9; /* Un gris muy suave, casi blanco */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Para que el footer siempre quede abajo */
+}
+
+a {
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+/* =========================================
+   2. HEADER Y NAVEGACIÓN
+   ========================================= */
+header {
+    background-color: #ffffff;
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Sombra suave */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+.user-welcome {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-link {
+    color: #555;
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-link:hover {
+    color: #007bff;
+}
+
+/* Botones genéricos (Login, Logout, etc) */
+.btn-login {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 6px rgba(0,123,255,0.2);
+}
+
+.btn-login:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+/* =========================================
+   3. CONTENEDOR PRINCIPAL
+   ========================================= */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    width: 100%;
+}
+
+/* =========================================
+   4. PÁGINA DE INICIO (INDEX)
+   ========================================= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 60px; /* Espacio generoso antes de las tarjetas */
+    animation: fadeIn 0.8s ease-out;
+    max-width: 700px;
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.welcome-section p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.os-container {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch; /* Para que tengan la misma altura */
+}
+
+/* --- TARJETAS (MEJORADAS) --- */
+.os-card {
+    width: 320px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    
+    /* ESPACIADO INTERNO CRÍTICO */
+    padding: 50px 30px; 
+    
+    color: #333;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.os-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+}
+
+.os-card i {
+    font-size: 6rem;
+    margin-bottom: 30px;
+    transition: transform 0.3s;
+}
+
+.os-card:hover i {
+    transform: scale(1.1);
+}
+
+.os-card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.os-card .os-desc {
+    font-size: 1rem;
+    color: #7f8c8d;
+    line-height: 1.6; /* Texto más legible */
+    margin: 0;
+}
+
+/* Efectos de color específicos */
+.windows-card:hover { border-color: rgba(0, 164, 239, 0.3); }
+.windows-card:hover i { color: #00a4ef; }
+
+.linux-card:hover { border-color: rgba(252, 198, 36, 0.3); }
+.linux-card:hover i { color: #fcc624; }
+
+/* Divisor "O" */
+.divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #ccc;
+    font-size: 1.2rem;
+    position: relative;
+    margin: 20px 0;
+}
+
+@media (min-width: 850px) {
+    .divider { margin: 0 10px; }
+    .divider::before, .divider::after {
+        content: "";
+        display: block;
+        height: 80px;
+        width: 1px;
+        background-color: #e0e0e0;
+        margin: 0 auto;
+    }
+    .divider span {
+        background: #f4f6f9; /* Mismo color que el fondo del body */
+        padding: 15px 0;
+        z-index: 1;
+    }
+}
+
+/* =========================================
+   5. LOGIN Y REGISTRO
+   ========================================= */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.login-card h2 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.login-card p {
+    color: #999;
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fcfcfc;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(0,123,255,0.1);
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 10px;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+.login-footer {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: #777;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.login-footer a {
+    color: #007bff;
+    font-weight: 600;
+}
+
+/* =========================================
+   6. GENERADOR (DRAG & DROP)
+   ========================================= */
+.drag-area {
+    border: 2px dashed #007bff;
+    height: 320px;
+    width: 100%;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.drag-area.active {
+    border: 2px solid #0056b3;
+    background-color: #eef6ff;
+    transform: scale(1.02);
+}
+
+.drag-area .icon {
+    font-size: 4.5rem;
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.drag-area header {
+    font-size: 1.4rem;
+    color: #2c3e50;
+    font-weight: 600;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0;
+}
+
+.drag-area span {
+    font-size: 1rem;
+    color: #999;
+    margin: 15px 0;
+}
+
+.drag-area button {
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.drag-area button:hover {
+    background: #0056b3;
+}
+
+/* =========================================
+   7. TABLA DE HISTORIAL
+   ========================================= */
+.table-container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    margin-top: 20px;
+    width: 100%;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px; /* Separación entre filas */
+    margin-top: 10px;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 15px;
+    color: #8898aa;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.history-table td {
+    padding: 20px 15px;
+    background-color: #fff;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Bordes redondeados para las filas */
+.history-table td:first-child { border-left: 1px solid #f0f0f0; border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+.history-table td:last-child { border-right: 1px solid #f0f0f0; border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+.history-table tr:hover td {
+    background-color: #f8f9fe;
+}
+
+/* Badges (Etiquetas de SO) */
+.badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.badge-win { background-color: #e6f7ff; color: #007bff; }
+.badge-linux { background-color: #fff8e1; color: #ffa000; }
+
+/* =========================================
+   8. FOOTER
+   ========================================= */
+.site-footer {
+    background-color: #1a1a1a;
+    color: #888;
+    padding: 60px 0 20px;
+    font-size: 0.9rem;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 0 20px;
+    gap: 40px;
+}
+
+.footer-section h4 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    margin-bottom: 10px;
+}
+
+.footer-section ul li a {
+    color: #888;
+}
+
+.footer-section ul li a:hover {
+    color: white;
+    padding-left: 5px; /* Efecto deslizante */
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
