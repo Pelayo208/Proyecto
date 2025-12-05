@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// 1. Seguridad
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -12,7 +11,6 @@ include __DIR__ . '/db.php';
 
 $usuario_id = $_SESSION['user_id'];
 
-// 2. Consulta
 $sql = "SELECT * FROM historial WHERE usuario_id = $usuario_id ORDER BY fecha DESC";
 $result = $conn->query($sql);
 ?>
@@ -39,15 +37,10 @@ $result = $conn->query($sql);
                 <tbody>
                     <?php while($row = $result->fetch_assoc()): ?>
                         <?php 
-                            // --- CORRECCIÓN AQUÍ ---
-                            // Analizamos el texto para ver si contiene palabras clave de Linux
                             $sys = $row['sistema'];
-                            
-                            // Si contiene "Linux" O "Samba", es Linux
                             $isLinux = (stripos($sys, 'Linux') !== false || stripos($sys, 'Samba') !== false);
                             
                             $badgeClass = $isLinux ? 'badge-linux' : 'badge-win';
-                            // Usamos fa-linux para Linux/Samba, fa-windows para el resto
                             $icon = $isLinux ? 'fa-brands fa-linux' : 'fa-brands fa-windows';
                         ?>
                         <tr>

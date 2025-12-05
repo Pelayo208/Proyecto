@@ -5,7 +5,7 @@
             
             <div class="footer-section">
                 <h4>Sobre Nosotros</h4>
-                <p>Proveemos las mejores soluciones de software<br>para todos los sistemas operativos.</p>
+                <p>Proveemos herramientas de automatización<br>para administradores de sistemas.</p>
             </div>
 
             <div class="footer-section">
@@ -13,7 +13,7 @@
                 <ul>
                     <li><a href="#">Política de Privacidad</a></li>
                     <li><a href="#">Términos de Servicio</a></li>
-                    <li><a href="#">Soporte Técnico</a></li>
+                    <li><a href="#">Ayuda y Soporte</a></li>
                 </ul>
             </div>
 
@@ -28,10 +28,9 @@
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; <?php echo date("Y"); ?> Tu Empresa Tecnológica. Todos los derechos reservados.</p>
+            <p>&copy; <?php echo date("Y"); ?> AdminSuite. Todos los derechos reservados.</p>
         </div>
     </footer>
 
 </body>
 </html>
-

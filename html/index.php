@@ -1,5 +1,4 @@
 <?php 
-// Usamos __DIR__ para evitar problemas de rutas en Docker
 include __DIR__ . '/header.php'; 
 ?>
 
@@ -7,7 +6,7 @@ include __DIR__ . '/header.php';
 
     <div class="welcome-section">
         <h1>Bienvenido al Gestor de Scripts</h1>
-        <p>Selecciona tu sistema operativo para generar estructuras de carpetas automáticamente.</p>
+        <p>Selecciona tu sistema operativo para generar automatizaciones de infraestructura.</p>
     </div>
 
     <div class="os-container">
@@ -15,7 +14,7 @@ include __DIR__ . '/header.php';
         <a href="generador.php?os=windows" class="os-card windows-card">
             <i class="fa-brands fa-windows"></i>
             <h2>Windows</h2>
-            <p class="os-desc">Generar archivo <b>.BAT</b> compatible con CMD y PowerShell.</p>
+            <p class="os-desc">Scripts PowerShell para Active Directory, DHCP y GPO.</p>
         </a>
 
         <div class="divider">
@@ -25,7 +24,7 @@ include __DIR__ . '/header.php';
         <a href="generador.php?os=linux" class="os-card linux-card">
             <i class="fa-brands fa-linux"></i>
             <h2>Linux</h2>
-            <p class="os-desc">Generar script <b>.SH</b> con permisos de ejecución (chmod).</p>
+            <p class="os-desc">Scripts Bash para Samba 4 AD DC y gestión de usuarios.</p>
         </a>
 
     </div>
@@ -33,9 +32,8 @@ include __DIR__ . '/header.php';
     <div style="margin-top: 50px; text-align: center; color: #7f8c8d; max-width: 600px;">
         <h3>¿Cómo funciona?</h3>
         <p style="font-size: 0.95rem;">
-            Simplemente sube un archivo CSV con las rutas que necesitas. 
-            Nuestra herramienta detectará tu selección y creará el código necesario 
-            para crear miles de carpetas en segundos.
+            Esta herramienta permite desplegar infraestructuras complejas en segundos.
+            Simplemente selecciona tu entorno, sube los archivos CSV requeridos y descarga el script listo para ejecutar en tu servidor.
         </p>
     </div>
 

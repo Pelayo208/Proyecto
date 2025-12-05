@@ -1,33 +1,24 @@
 <?php 
-// 1. Incluir la conexión a la base de datos
 include __DIR__ . '/db.php';
-
-// 2. Iniciar la sesión para poder guardar los datos del usuario
 session_start();
 
 $error = "";
 
-// 3. Lógica cuando se envía el formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $conn->real_escape_string($_POST['email']);
     $pass = $_POST['password'];
 
-    // IMPORTANTE: Aquí pedimos también el campo 'nombre'
     $sql = "SELECT id, nombre, email, password FROM usuarios WHERE email = '$email'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         
-        // 4. Verificar la contraseña encriptada
         if (password_verify($pass, $row['password'])) {
-            
-            // 5. ¡Login correcto! Guardamos datos en la sesión
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['user_email'] = $row['email'];
-            $_SESSION['user_name'] = $row['nombre']; // <--- Esto es lo nuevo
+            $_SESSION['user_name'] = $row['nombre'];
             
-            // Redirigir al inicio
             header("Location: index.php");
             exit();
         } else {
@@ -38,7 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Incluimos el header visual (después de la lógica para evitar errores de redirección)
 include __DIR__ . '/header.php'; 
 ?>
 

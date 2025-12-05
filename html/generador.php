@@ -1,7 +1,6 @@
 <?php 
 session_start();
 
-// --- SEGURIDAD ---
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -10,17 +9,13 @@ if (!isset($_SESSION['user_id'])) {
 include __DIR__ . '/header.php'; 
 include __DIR__ . '/db.php';
 
-// --- CONFIGURACIÓN VISUAL ---
 $os = isset($_GET['os']) ? $_GET['os'] : 'windows'; 
 
-// Variables dinámicas según OS
 if ($os === 'linux') {
     $osName = 'Linux (Samba AD)';
     $osIcon = 'fa-brands fa-linux';
-    $osColor = '#e95420'; // Naranja Ubuntu
+    $osColor = '#e95420'; 
     $defaultTab = 'samba_infra';
-    
-    // Mapeo JS para Linux (Ahora con 4 pestañas)
     $jsMapping = [
         'samba_infra' => 0,
         'samba_users' => 1,
@@ -30,10 +25,8 @@ if ($os === 'linux') {
 } else {
     $osName = 'Windows Server';
     $osIcon = 'fa-brands fa-windows';
-    $osColor = '#007bff'; // Azul Windows
+    $osColor = '#007bff'; 
     $defaultTab = 'infra';
-    
-    // Mapeo JS para Windows
     $jsMapping = [
         'infra' => 0,
         'config' => 1,
@@ -47,11 +40,6 @@ $generatedCode = "";
 $scriptName = "script.txt";
 $activeTab = isset($_POST['active_tab']) ? $_POST['active_tab'] : $defaultTab;
 
-// ==================================================================================
-//                               LÓGICA WINDOWS SERVER
-// ==================================================================================
-
-// 1. INFRAESTRUCTURA
 if (isset($_POST['generate_ad_install'])) {
     $activeTab = "infra"; 
     $scriptName = "1_Install_Domain.ps1";
@@ -67,7 +55,6 @@ if (isset($_POST['generate_ad_install'])) {
     $conn->query("INSERT INTO historial (usuario_id, sistema) VALUES ({$_SESSION['user_id']}, 'Win Srv: Crear Dominio')");
 }
 
-// 2. CONFIGURACIÓN GLOBAL
 if (isset($_POST['process_global_config'])) {
     $activeTab = "config"; 
     $scriptName = "2_Config_Network.ps1";
@@ -75,7 +62,7 @@ if (isset($_POST['process_global_config'])) {
     $dhcpStart = $_POST['dhcp_start']; 
     $dhcpEnd = $_POST['dhcp_end']; 
     
-    $gateway = "192.168.1.1"; 
+    $gateway = "192.168.1.1";
     if (strpos($dhcpStart, '.') !== false) {
         $parts = explode('.', $dhcpStart);
         $gateway = $parts[0] . '.' . $parts[1] . '.' . $parts[2] . '.1';
@@ -96,7 +83,6 @@ if (isset($_POST['process_global_config'])) {
     $conn->query("INSERT INTO historial (usuario_id, sistema) VALUES ({$_SESSION['user_id']}, 'Win Srv: Config Global')");
 }
 
-// 3. ALTAS USUARIOS
 if (isset($_POST['process_csv_users'])) {
     $activeTab = "users"; 
     $scriptName = "3_Deploy_Users.ps1";
@@ -105,11 +91,17 @@ if (isset($_POST['process_csv_users'])) {
         
         $generatedCode .= "# FASE 3: ALTA DE USUARIOS\n";
         $generatedCode .= "\$RootPath = 'C:\\UsuariosCorporativos'\n";
+        
         $generatedCode .= "if (!(Test-Path \$RootPath)) { New-Item -ItemType Directory -Path \$RootPath | Out-Null }\n";
+        $generatedCode .= "icacls \$RootPath /inheritance:d /grant 'Administrators:(OI)(CI)F' 'SYSTEM:(OI)(CI)F' 'Domain Users:(OI)(CI)RX' /quiet\n";
         $generatedCode .= "if (!(Get-SmbShare -Name 'Usuarios' -ErrorAction SilentlyContinue)) { New-SmbShare -Name 'Usuarios' -Path \$RootPath -FullAccess 'Everyone' }\n\n";
         
         while (($data = fgetcsv($file, 1000, ",")) !== FALSE) {
-            $nombre = trim($data[0] ?? ''); $apellido = trim($data[1] ?? ''); $dept = trim($data[2] ?? 'General'); $pass = trim($data[3] ?? 'P@ssw0rd2024');
+            $nombre = trim($data[0] ?? ''); 
+            $apellido = trim($data[1] ?? ''); 
+            $dept = trim($data[2] ?? 'General'); 
+            $pass = trim($data[3] ?? 'P@ssw0rd2024');
+            
             if (empty($nombre)) continue;
             
             $sam = strtolower(substr($nombre, 0, 1) . $apellido); 
@@ -117,18 +109,20 @@ if (isset($_POST['process_csv_users'])) {
             
             $generatedCode .= "if (!(Get-ADGroup -Filter {Name -eq '$grpName'})) { New-ADGroup -Name '$grpName' -GroupScope Global -Path 'CN=Users,DC=miempresa,DC=local' }\n";
             $generatedCode .= "\$p = ConvertTo-SecureString '$pass' -AsPlainText -Force\n";
-            $generatedCode .= "try { New-ADUser -Name '$sam' -GivenName '$nombre' -AccountPassword \$p -Enabled \$true -Path 'CN=Users,DC=miempresa,DC=local' -ErrorAction Stop } catch {}\n";
+            
+            $generatedCode .= "try { New-ADUser -Name '$sam' -GivenName '$nombre' -AccountPassword \$p -Enabled \$true -Path 'CN=Users,DC=miempresa,DC=local' -HomeDrive 'H:' -HomeDirectory \"\\\\MIEMPRESA\\Usuarios\\$sam\" -ErrorAction Stop } catch {}\n";
+            
             $generatedCode .= "Add-ADGroupMember -Identity '$grpName' -Members '$sam' -ErrorAction SilentlyContinue\n";
+            
             $generatedCode .= "\$UF = \"\$RootPath\\$sam\"\n";
             $generatedCode .= "if (!(Test-Path \$UF)) { New-Item -ItemType Directory -Path \$UF | Out-Null }\n";
-            $generatedCode .= "icacls \$UF /inheritance:d /grant 'Administrators:(OI)(CI)F' \"MIEMPRESA\\$sam:(OI)(CI)F\" \"MIEMPRESA\\$grpName:(OI)(CI)RX\" /quiet\n";
+            $generatedCode .= "icacls \$UF /inheritance:d /grant 'Administrators:(OI)(CI)F' \"MIEMPRESA\\$sam:(OI)(CI)F\" /quiet\n";
         }
         fclose($file);
         $conn->query("INSERT INTO historial (usuario_id, sistema) VALUES ({$_SESSION['user_id']}, 'Win Srv: Alta Usuarios')");
     }
 }
 
-// 4. RECURSOS
 if (isset($_POST['process_resources'])) {
     $activeTab = "resources"; 
     $scriptName = "4_Deploy_Resources.ps1";
@@ -162,7 +156,6 @@ if (isset($_POST['process_resources'])) {
     }
 }
 
-// 5. BAJAS
 if (isset($_POST['process_maintenance'])) {
     $activeTab = "maintenance"; 
     $scriptName = "5_Offboarding.ps1";
@@ -181,11 +174,6 @@ if (isset($_POST['process_maintenance'])) {
     }
 }
 
-// ==================================================================================
-//                               LÓGICA LINUX (SAMBA 4 AD DC)
-// ==================================================================================
-
-// 1. INFRAESTRUCTURA (Provisioning Samba)
 if (isset($_POST['generate_samba_infra'])) {
     $activeTab = "samba_infra"; 
     $scriptName = "1_install_samba.sh";
@@ -195,31 +183,28 @@ if (isset($_POST['generate_samba_infra'])) {
     $shortDomain = explode('.', $domain)[0];
 
     $generatedCode .= "#!/bin/bash\n# Instalación SAMBA 4 DC\n";
-    $generatedCode .= "echo '1. Dependencias...'\napt update && apt install -y samba smbclient winbind libpam-winbind libnss-winbind krb5-user krb5-config\n\n";
-    $generatedCode .= "echo '2. Config...'\nsystemctl stop smbd nmbd winbind\nmv /etc/samba/smb.conf /etc/samba/smb.conf.bak\n\n";
-    $generatedCode .= "echo '3. Provisioning...'\nsamba-tool domain provision --use-rfc2307 --realm=$realm --domain=$shortDomain --admin-password='$pass' --server-role=dc --dns-backend=SAMBA_INTERNAL\n\n";
-    $generatedCode .= "echo '4. Inicio...'\ncp /var/lib/samba/private/krb5.conf /etc/krb5.conf\nsystemctl unmask samba-ad-dc\nsystemctl enable samba-ad-dc\nsystemctl start samba-ad-dc\n";
+    $generatedCode .= "apt update && apt install -y samba smbclient winbind libpam-winbind libnss-winbind krb5-user krb5-config\n";
+    $generatedCode .= "systemctl stop smbd nmbd winbind\n";
+    $generatedCode .= "mv /etc/samba/smb.conf /etc/samba/smb.conf.bak\n";
+    $generatedCode .= "samba-tool domain provision --use-rfc2307 --realm=$realm --domain=$shortDomain --admin-password='$pass' --server-role=dc --dns-backend=SAMBA_INTERNAL\n";
+    $generatedCode .= "cp /var/lib/samba/private/krb5.conf /etc/krb5.conf\n";
+    $generatedCode .= "systemctl unmask samba-ad-dc\n";
+    $generatedCode .= "systemctl enable samba-ad-dc\n";
+    $generatedCode .= "systemctl start samba-ad-dc\n";
     
     $conn->query("INSERT INTO historial (usuario_id, sistema) VALUES ({$_SESSION['user_id']}, 'Samba: Provisioning')");
 }
 
-// 2. USUARIOS SAMBA (samba-tool)
 if (isset($_POST['process_samba_users'])) {
     $activeTab = "samba_users"; 
     $scriptName = "2_samba_users.sh";
-    
     if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] == 0) {
         $file = fopen($_FILES['csv_file']['tmp_name'], "r");
-        
         $generatedCode .= "#!/bin/bash\n# Usuarios Samba\n\n";
         while (($data = fgetcsv($file, 1000, ",")) !== FALSE) {
             $nombre = trim($data[0] ?? ''); $apellido = trim($data[1] ?? ''); $dept = trim($data[2] ?? 'General'); $pass = trim($data[3] ?? 'Pass123!');
             if (empty($nombre)) continue;
-            
-            $user = strtolower(substr($nombre, 0, 1) . $apellido);
-            $group = "GRP_$dept";
-            
-            $generatedCode .= "echo 'Procesando: $user'\n";
+            $user = strtolower(substr($nombre, 0, 1) . $apellido); $group = "GRP_$dept";
             $generatedCode .= "samba-tool group add $group 2>/dev/null\n";
             $generatedCode .= "samba-tool user create $user '$pass' --given-name='$nombre' --surname='$apellido'\n";
             $generatedCode .= "samba-tool group addmembers $group $user\n";
@@ -229,7 +214,6 @@ if (isset($_POST['process_samba_users'])) {
     }
 }
 
-// 3. RECURSOS COMPARTIDOS (smb.conf)
 if (isset($_POST['process_samba_resources'])) {
     $activeTab = "samba_resources"; 
     $scriptName = "3_samba_shares.sh";
@@ -237,9 +221,9 @@ if (isset($_POST['process_samba_resources'])) {
     if (isset($_FILES['csv_resources']) && $_FILES['csv_resources']['error'] == 0) {
         $file = fopen($_FILES['csv_resources']['tmp_name'], "r");
         
-        $generatedCode .= "#!/bin/bash\n# Recursos Samba\nmkdir -p /srv/samba/departamentos\n";
-        
-        $confBlock = "\n### PEGAR EN /etc/samba/smb.conf ###\n";
+        $generatedCode .= "#!/bin/bash\n# Recursos Samba (Padre 'Datos')\n";
+        $generatedCode .= "mkdir -p /srv/samba/departamentos\n";
+        $generatedCode .= "chmod 755 /srv/samba/departamentos\n\n";
         
         while (($data = fgetcsv($file, 1000, ",")) !== FALSE) {
             $tipo = strtolower(trim($data[0] ?? '')); 
@@ -249,57 +233,40 @@ if (isset($_POST['process_samba_resources'])) {
             if ($tipo == 'carpeta') {
                 $path = "/srv/samba/departamentos/$nombre";
                 $groupName = "GRP_$grupo"; 
-                
                 $generatedCode .= "mkdir -p $path\n";
                 $generatedCode .= "chown root:\"$groupName\" $path\n";
                 $generatedCode .= "chmod 0770 $path\n";
-                
-                $confBlock .= "\n[$nombre]\n";
-                $confBlock .= "   path = $path\n";
-                $confBlock .= "   read only = no\n";
-                $confBlock .= "   valid users = @\"$groupName\"\n";
-                $confBlock .= "   force create mode = 0660\n";
-                $confBlock .= "   force directory mode = 0770\n";
             }
         }
         fclose($file);
         
-        $generatedCode .= "\ncat <<EOF\n$confBlock\nEOF\n";
-        $generatedCode .= "echo \"\n# Recuerda reiniciar: systemctl restart samba-ad-dc\"\n";
+        $confBlock = "\n### PEGAR EN /etc/samba/smb.conf ###\n";
+        $confBlock .= "[Datos]\n"; 
+        $confBlock .= "   path = /srv/samba/departamentos\n";
+        $confBlock .= "   read only = no\n";
+        $confBlock .= "   browseable = yes\n";
+        $confBlock .= "   force create mode = 0660\n";
+        $confBlock .= "   force directory mode = 0770\n";
+        
+        $generatedCode .= "echo \"$confBlock\"\n";
+        $generatedCode .= "echo \"\n# Reiniciar: systemctl restart samba-ad-dc\"\n";
         
         $conn->query("INSERT INTO historial (usuario_id, sistema) VALUES ({$_SESSION['user_id']}, 'Samba: Recursos')");
     }
 }
 
-// 4. CLIENTE LINUX (JOIN DOMAIN) - ¡NUEVO!
 if (isset($_POST['generate_linux_join'])) {
     $activeTab = "linux_client"; 
     $scriptName = "4_join_domain.sh";
-    
-    $domain = $_POST['join_domain'];
-    $adminUser = $_POST['join_user'];
+    $domain = $_POST['join_domain']; 
+    $adminUser = $_POST['join_user']; 
     $adminPass = $_POST['join_pass'];
     
-    $generatedCode .= "#!/bin/bash\n# Script para Unir Cliente Ubuntu/Debian al Dominio\n";
-    $generatedCode .= "# Asegúrate de que el DNS del cliente apunte al Servidor Samba/AD\n\n";
-    
-    $generatedCode .= "echo '1. Instalando paquetes necesarios...'\n";
-    $generatedCode .= "apt update && apt install -y realmd sssd sssd-tools libnss-sss libpam-sss adcli packagekit policykit-1\n\n";
-    
-    $generatedCode .= "echo '2. Descubriendo el dominio $domain...'\n";
-    $generatedCode .= "realm discover $domain\n\n";
-    
-    $generatedCode .= "echo '3. Uniéndose al dominio...'\n";
-    $generatedCode .= "echo '$adminPass' | realm join -U $adminUser $domain --verbose\n\n";
-    
-    $generatedCode .= "echo '4. Configurando directorios Home automáticos...'\n";
-    $generatedCode .= "echo 'session optional pam_mkhomedir.so skel=/etc/skel umask=0077' >> /etc/pam.d/common-session\n\n";
-    
-    $generatedCode .= "echo '5. Permitiendo acceso SSH (opcional)...'\n";
-    $generatedCode .= "# sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config\n";
-    $generatedCode .= "# systemctl restart sshd\n\n";
-    
-    $generatedCode .= "echo '¡Unión completada! Prueba: id $adminUser@$domain'\n";
+    $generatedCode .= "#!/bin/bash\n# Unir Cliente Linux\n";
+    $generatedCode .= "apt update && apt install -y realmd sssd sssd-tools libnss-sss libpam-sss adcli packagekit policykit-1\n";
+    $generatedCode .= "realm discover $domain\n";
+    $generatedCode .= "echo '$adminPass' | realm join -U $adminUser $domain --verbose\n";
+    $generatedCode .= "echo 'session optional pam_mkhomedir.so skel=/etc/skel umask=0077' >> /etc/pam.d/common-session\n";
     
     $conn->query("INSERT INTO historial (usuario_id, sistema) VALUES ({$_SESSION['user_id']}, 'Linux: Client Join')");
 }
@@ -396,7 +363,8 @@ if (isset($_POST['generate_linux_join'])) {
                 <form action="" method="POST"><input type="hidden" name="active_tab" value="samba_infra">
                 <div class="input-group"><label>Dominio</label><input type="text" name="domain_name" class="form-control" placeholder="empresa.local" required></div>
                 <div class="input-group"><label>Pass Admin</label><input type="password" name="admin_pass" class="form-control" required></div>
-                <button type="submit" name="generate_samba_infra" class="btn-submit" style="background:#e95420;">Generar Script</button></form>
+                <button type="submit" name="generate_samba_infra" class="btn-submit" style="background:#e95420;">Generar Script Instalación</button>
+                </form>
             </div>
         </div>
         <div id="samba_users" class="tab-content <?php echo ($activeTab == 'samba_users') ? 'active' : ''; ?>">
@@ -415,18 +383,15 @@ if (isset($_POST['generate_linux_join'])) {
                 </div>
             </form>
         </div>
-        
         <div id="linux_client" class="tab-content <?php echo ($activeTab == 'linux_client') ? 'active' : ''; ?>">
             <div class="config-panel">
                 <h3><i class="fa-brands fa-ubuntu"></i> Unir PC al Dominio</h3>
-                <p style="margin-bottom:15px; font-size:0.9rem;">Genera un script para ejecutar en los ordenadores de los empleados.</p>
                 <form action="" method="POST">
                     <input type="hidden" name="active_tab" value="linux_client">
-                    <div class="input-group"><label>Dominio a Unirse</label><input type="text" name="join_domain" class="form-control" placeholder="empresa.local" required></div>
-                    <div class="input-group"><label>Usuario Admin Dominio</label><input type="text" name="join_user" class="form-control" placeholder="administrator" required></div>
-                    <div class="input-group"><label>Contraseña Admin</label><input type="password" name="join_pass" class="form-control" required></div>
-                    <button type="submit" name="generate_linux_join" class="btn-submit" style="background:#5E2750;">Generar Client Script</button>
-                </form>
+                    <div class="input-group"><label>Dominio</label><input type="text" name="join_domain" class="form-control" placeholder="empresa.local" required></div>
+                    <div class="input-group"><label>Usuario Admin</label><input type="text" name="join_user" class="form-control" placeholder="administrator" required></div>
+                    <div class="input-group"><label>Pass Admin</label><input type="password" name="join_pass" class="form-control" required></div>
+                    <button type="submit" name="generate_linux_join" class="btn-submit" style="background:#5E2750;">Generar Script</button></form>
             </div>
         </div>
 
@@ -447,7 +412,6 @@ if (isset($_POST['generate_linux_join'])) {
 </div>
 
 <script>
-    // Pasamos el array de PHP a JS correctamente usando json_encode
     const mapping = <?php echo json_encode($jsMapping); ?>;
 
     function openTab(tabName) {
@@ -456,8 +420,6 @@ if (isset($_POST['generate_linux_join'])) {
         document.getElementById(tabName).classList.add('active');
         
         const btns = document.querySelectorAll('.tab-btn');
-        
-        // Verificamos si existe el índice en el mapeo antes de intentar acceder
         if (mapping[tabName] !== undefined && btns[mapping[tabName]]) {
             btns[mapping[tabName]].classList.add('active');
         }
